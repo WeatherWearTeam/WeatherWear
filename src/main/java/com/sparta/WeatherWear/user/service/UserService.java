@@ -1,6 +1,7 @@
 package com.sparta.WeatherWear.user.service;
 
-import com.sparta.WeatherWear.board.dto.BoardListResponseDTO;
+import com.sparta.WeatherWear.board.dto.BoardCreateResponseDto;
+import com.sparta.WeatherWear.board.dto.SimpleBoardResponseDTO;
 import com.sparta.WeatherWear.board.entity.Board;
 import com.sparta.WeatherWear.board.repository.BoardRepository;
 import com.sparta.WeatherWear.global.service.ImageTransformService;
@@ -11,6 +12,10 @@ import com.sparta.WeatherWear.user.entity.User;
 import com.sparta.WeatherWear.user.repository.UserRepository;
 import com.sparta.WeatherWear.global.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,13 +39,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final S3Service s3Service;
     private final ImageTransformService imageTransformService;
-
-
-    public ResponseEntity<List<BoardListResponseDTO>> findUserBoard(UserDetailsImpl userDetails){
-        List<Board> boardList = boardRepository.findByUserId(userDetails.getUser().getId());
-        return ResponseEntity.ok(boardList.stream().map(BoardListResponseDTO::new).toList());
-    }
-
 
     /* 회원가입 */
     @Transactional
@@ -83,7 +81,7 @@ public class UserService {
             url = s3Service.uploadFile(webPFile);
         }
         user.updateInfo(nickname,url);
-        userRepository.save(user); // Transactional 왜 안되는지 확인해야됨!!!
+        userRepository.save(user);
         return ResponseEntity.ok().body("User updated successfully");
     }
 
@@ -100,9 +98,10 @@ public class UserService {
         return ResponseEntity.ok().body("User updated successfully");
     }
 
-    public ResponseEntity<String> logout(UserDetailsImpl userDetails) {
-        User user = userDetails.getUser();
-
-        return ResponseEntity.ok().body("User logout successfully");
+    /* 사용자의 게시물 검색 기능 */
+    public ResponseEntity<Page<SimpleBoardResponseDTO>> findUserBoard(UserDetailsImpl userDetails, int page, Integer pty, Integer sky, String keyword){
+        Pageable pageable = PageRequest.of(page, 8, Sort.by(Sort.Order.desc("id")));
+        Page<Board> boardPage  = boardRepository.findByUserId(userDetails.getUser().getId(),pty,sky,keyword,pageable);
+        return ResponseEntity.ok(boardPage.map(SimpleBoardResponseDTO::new));
     }
 }

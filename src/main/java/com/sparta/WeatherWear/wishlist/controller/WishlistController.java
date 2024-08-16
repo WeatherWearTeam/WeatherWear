@@ -1,11 +1,13 @@
 package com.sparta.WeatherWear.wishlist.controller;
 
+import com.sparta.WeatherWear.clothes.enums.ClothesType;
 import com.sparta.WeatherWear.wishlist.dto.WishlistRequestDTO;
 import com.sparta.WeatherWear.wishlist.dto.NaverProductResponseDTO;
 import com.sparta.WeatherWear.wishlist.dto.WishlistResponseDTO;
 import com.sparta.WeatherWear.global.security.UserDetailsImpl;
 import com.sparta.WeatherWear.wishlist.service.NaverShoppingService;
 import com.sparta.WeatherWear.wishlist.service.WishlistService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @RestController
+@Tag(name = "위시리스트 API", description = "옷 위시리스트")
 @RequestMapping("/api")
 public class WishlistController {
 
@@ -31,7 +34,7 @@ public class WishlistController {
     /* 위시리스트 불러오기 */
     @GetMapping("/wishlist")
     public ResponseEntity<Page<WishlistResponseDTO>> findWishlist(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam(value = "page", defaultValue = "0") int page, @RequestParam(value = "type", required = false, defaultValue = "") String type) {
-        return wishlistService.getWishlist(userDetails,page,type);
+        return wishlistService.getWishlist(userDetails,page, type);
     }
 
     /* 위시리스트 추가하기 */
@@ -44,13 +47,5 @@ public class WishlistController {
     @DeleteMapping("/wishlist/{id}")
     public ResponseEntity<String> removeWishlist(@PathVariable("id") long id,@AuthenticationPrincipal UserDetailsImpl userDetails) {
         return wishlistService.removeWishlist(userDetails,id);
-    }
-
-    /*______________________NaverShoping_______________________*/
-
-    /* 네이버 쇼핑 불러오기 */
-    @GetMapping("/naver/shopping")
-    public ResponseEntity<List<NaverProductResponseDTO>> findNaverProduct(@RequestParam(value = "query", required = true) String query, @RequestParam(value = "display", defaultValue = "10") int display,@RequestParam(value = "display", defaultValue = "1") int start) {
-        return ResponseEntity.ok(naverShoppingService.searchProducts(query,display,start));
     }
 }

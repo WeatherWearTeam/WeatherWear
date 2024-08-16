@@ -1,36 +1,40 @@
 package com.sparta.WeatherWear.board.dto;
 
-import com.sparta.WeatherWear.board.entity.Board;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sparta.WeatherWear.board.entity.Comment;
+import com.sparta.WeatherWear.user.dto.SimpleUserDTO;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor // 기본 생성자 추가
 public class CommentCreateResponseDto {
     private long id;
-    private Long UserId;
-    private String nickname;
-    private String image;
+    // 사용자 정보
+    private SimpleUserDTO user;
+
     private Long BoardId;
     private String contents;
-    private int commentCount;
-    private LocalDateTime registDate;
-    private LocalDateTime updateDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime updatedAt;
 
     public CommentCreateResponseDto(Comment comment) {
         this.id = comment.getId();
-        this.UserId = comment.getUser().getId();
-        this.nickname = comment.getUser().getNickname();
-        this.image = comment.getUser().getImage();
+        //
+        this.user =new SimpleUserDTO(comment.getUser());
+        //
         this.BoardId = comment.getBoard().getId();
         this.contents = comment.getContents();
-        this.commentCount = comment.getCommentLikes().size();
-        this.registDate = comment.getRegistDate();
-        this.updateDate = comment.getUpdateDate();
+        //시간
+        this.createdAt = comment.getCreatedAt();
+        this.updatedAt = comment.getUpdatedAt();
     }
 
 }

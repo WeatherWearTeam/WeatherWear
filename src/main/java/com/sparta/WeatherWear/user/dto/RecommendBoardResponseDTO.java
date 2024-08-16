@@ -17,6 +17,6 @@ public class RecommendBoardResponseDTO implements ResponseDTO {
 
     public RecommendBoardResponseDTO(Board board) {
         this.id = board.getId();
-        this.image = board.getImage();
+        this.image = board.getBoardImage();
     }
 }

@@ -1,13 +1,12 @@
 package com.sparta.WeatherWear.board.entity;
 
-import com.sparta.WeatherWear.board.dto.CommentCreateResponseDto;
 import com.sparta.WeatherWear.board.time.Timestamped;
 import com.sparta.WeatherWear.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -27,10 +26,7 @@ public class Comment extends Timestamped {
     private Board board;
 
     @Column(name = "contents", columnDefinition = "MEDIUMTEXT", nullable = false)
-    private String contents;
-
-    @OneToMany(mappedBy = "comment")
-    private List<CommentLike> commentLikes;
+    private String contents; // 내용물
 
     public Comment(User user, Board board, String contents) {
         this.user = user;

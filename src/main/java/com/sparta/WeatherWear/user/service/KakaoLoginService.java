@@ -35,18 +35,14 @@ public class KakaoLoginService {
     @Value("${kakao.client.id}")
     private String client_id;
 
-    @Value("${kakao.redirect.uri}")
-    private String redirect_uri;
-
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RestTemplate restTemplate;
     private final JwtUtil jwtUtil;
 
-    public ResponseEntity<String> kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
+    public ResponseEntity<String> kakaoLogin(String code,String redirectUri, HttpServletResponse response) throws JsonProcessingException {
         // "인가 코드"로 "액세스 토큰" 요청
-        String accessToken = getToken(code);
-
+        String accessToken = getToken(code,redirectUri);
         // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
         KakaoUserResponseDto kakaoUserInfo = getKakaoUserInfo(accessToken);
 
@@ -92,7 +88,7 @@ public class KakaoLoginService {
 
 
     // 카카오 토큰 처리
-    private String getToken(String code) throws JsonProcessingException {
+    private String getToken(String code,String redirectUri) throws JsonProcessingException {
         // 요청 URL 만들기
         URI uri = UriComponentsBuilder.fromUriString("https://kauth.kakao.com").path("/oauth/token").encode().build().toUri();
 
@@ -104,7 +100,7 @@ public class KakaoLoginService {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", client_id);
-        body.add("redirect_uri", redirect_uri);
+        body.add("redirect_uri", redirectUri);
         body.add("code", code);
 
         RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
@@ -135,13 +131,18 @@ public class KakaoLoginService {
 
         // HTTP 요청 보내기
         ResponseEntity<String> response = restTemplate.exchange(requestEntity,String.class);
-        System.out.println(response.getBody());
 
         JsonNode jsonNode = new ObjectMapper().readTree(response.getBody());
+
         Long id = jsonNode.get("id").asLong();
-        String nickname = jsonNode.get("properties").get("nickname").asText();
-        String email = jsonNode.get("kakao_account").get("email").asText();
-        String image = jsonNode.get("properties").get("profile_image").asText();
+        // nickname 처리
+        JsonNode propertiesNode = jsonNode.get("properties");
+        String nickname = propertiesNode != null && propertiesNode.get("nickname") != null ? propertiesNode.get("nickname").asText() : "No Nickname";
+        // email 처리
+        JsonNode kakaoAccountNode = jsonNode.get("kakao_account");
+        String email = kakaoAccountNode != null && kakaoAccountNode.get("email") != null ? kakaoAccountNode.get("email").asText() : "No Email";
+        // profile_image 처리
+        String image = propertiesNode != null && propertiesNode.get("profile_image") != null ? propertiesNode.get("profile_image").asText() : "No Image";
         return new KakaoUserResponseDto(id, nickname, email,image);
     }
 }

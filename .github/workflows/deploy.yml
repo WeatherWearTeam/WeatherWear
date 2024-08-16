@@ -1,0 +1,39 @@
+name: Deploy to AWS CodeDeploy
+
+on:
+  push:
+    branches:
+      - main  # 배포를 트리거할 브랜치
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2  # AWS 리전 설정
+
+      - name: Create deployment package
+        run: zip -r deployment-package.zip ./
+
+      - name: Upload application to S3
+        run: |
+          aws s3 cp deployment-package.zip s3://weatherwearbucket/WeatherWear-main.zip
+
+      - name: Verify S3 upload
+        run: aws s3 ls s3://weatherwearbucket/WeatherWear-main.zip
+
+      - name: Deploy to CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name deploy-app \
+            --deployment-group-name deploy-group \
+            --s3-location bucket=weatherwearbucket,key=WeatherWear-main.zip,bundleType=zip\
+            --description "WeatherWear Deploying new version"

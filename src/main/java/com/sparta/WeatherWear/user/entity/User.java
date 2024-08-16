@@ -3,7 +3,6 @@ package com.sparta.WeatherWear.user.entity;
 import com.sparta.WeatherWear.board.entity.Board;
 import com.sparta.WeatherWear.board.entity.BoardLike;
 import com.sparta.WeatherWear.board.entity.Comment;
-import com.sparta.WeatherWear.board.entity.CommentLike;
 import com.sparta.WeatherWear.clothes.entity.Clothes;
 import com.sparta.WeatherWear.user.dto.UserCreateRequestDTO;
 import com.sparta.WeatherWear.user.enums.UserGender;
@@ -65,10 +64,6 @@ public class User {
     // 사용자의 댓글
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.REMOVE)
     private List<Comment> comments;
-
-    // 사용자가 좋아요한 게시물
-    @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.REMOVE)
-    private List<CommentLike> commentLikes;
 
     // 사용자의 옷 목록
     @OneToMany(mappedBy = "user", orphanRemoval = true, cascade = CascadeType.REMOVE)
