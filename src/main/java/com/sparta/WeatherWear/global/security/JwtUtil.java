@@ -152,14 +152,16 @@ public class JwtUtil {
             // Refresh Token으로부터 사용자의 정보 추출
             String email = getUserInfoFromToken(storedRefreshToken).getSubject();
             User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found for email: " + email));
+            // 기존 Refresh Token의 남은 유효 기간을 계산
+            long remainingValidity = redisService.getExpiration(RedisService.REFRESH_TOKEN_PREFIX,strippedAccessToken);
             // 기존 refreshToken 삭제
             redisService.delete(RedisService.REFRESH_TOKEN_PREFIX,strippedAccessToken);
             // 새로운 Access Token 생성
             String newAccessToken = createAccessToken(user);
             // 새로운 Refresh Token 생성
-            String newRefreshToken = createRefreshToken(user);
-            // Redis에 새로운 Refresh Token 저장
-            redisService.save(RedisService.REFRESH_TOKEN_PREFIX,substringToken(newAccessToken), newRefreshToken, RedisService.REFRESH_TOKEN_VALIDITY);
+            redisService.save(RedisService.REFRESH_TOKEN_PREFIX, substringToken(newAccessToken), storedRefreshToken, remainingValidity);
+
+
             return newAccessToken;
         }
         return null;

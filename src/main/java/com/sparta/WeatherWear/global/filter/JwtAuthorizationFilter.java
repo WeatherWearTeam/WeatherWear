@@ -15,8 +15,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
 
 /*
 작성자 : 이승현
@@ -33,28 +31,47 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-    /* 사용자의 로그인 상태를 토큰을 통해 검증합니다. 또한 RefreshToken을 활용해 토큰 탈취에 대비합니다. */
+    /* 사용자의 로그인 상태를 토큰을 통해 검증합니다. 또한 RefreshToken을 활용해 토큰 탈취에 대비합니다. *//* 사용자의 로그인 상태를 토큰을 통해 검증합니다. 또한 RefreshToken을 활용해 토큰 탈취에 대비합니다. */
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain filterChain) throws ServletException, IOException {
         String accessToken  = jwtUtil.getTokenFromRequest(req, JwtUtil.AUTHORIZATION_HEADER); // 액세스 토큰과 리프레시 토큰을 쿠키에서 가져옴
+        log.info("Access Token retrieved from request: {}", accessToken);
+
         if (accessToken != null) { // accessToken 확인
             String accessTokenValue = jwtUtil.substringToken(accessToken); // accessToken 검증
+            log.info("Access Token after removing prefix: {}", accessTokenValue);
+
             if (jwtUtil.validateToken(accessTokenValue)) {
+                log.info("Access Token is valid");
                 UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtil.getUserInfoFromToken(accessTokenValue).getSubject());// 토큰이 올바르면 사용자 정보 확인
                 setAuthentication(userDetails, req);// 사용자 인증 및 정보 저장
-            } else {// accessToken이 유효하지 않은 경우
+                log.info("Authentication set for user: {}", userDetails.getUsername());
+            } else { // accessToken이 유효하지 않은 경우
+                log.warn("Access Token is invalid or expired");
                 String newAccessToken = jwtUtil.refreshAccessToken(accessToken); // accessToken 기반으로 RefreshToken을 찾아 재발급을 진행
+
                 if (newAccessToken != null) {
+                    log.info("New Access Token generated: {}", newAccessToken);
                     // 새 토큰을 기반으로 사용자 정보 확인
                     UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtil.getUserInfoFromToken(jwtUtil.substringToken(newAccessToken)).getSubject()); // 새 토큰에서 사용자 정보를 추출
                     jwtUtil.addTokenToCookie(newAccessToken, res);// 새로운 액세스 토큰을 쿠키에 추가
                     setAuthentication(userDetails, req);// 사용자 인증 설정
-                    log.info("User = {}",userDetails.getUsername() );
+                    log.info("New Authentication set for user: {}", userDetails.getUsername());
+                } else {
+                    // 리프레시 토큰이 만료된 경우
+                    log.error("Refresh Token expired or invalid, cannot generate new Access Token");
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.getWriter().write("Refresh Token expired or invalid.");
+                    return;
                 }
             }
+        } else {
+            log.warn("No Access Token found in request");
         }
         filterChain.doFilter(req, res);
+        log.info("Request processing completed");
     }
+
 
     // 사용자 인증 설정
     private void setAuthentication(UserDetails userDetails, HttpServletRequest req){
