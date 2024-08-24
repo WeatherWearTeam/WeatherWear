@@ -68,9 +68,6 @@ jobs:
           # Stop existing application if running
           pkill -f './gradlew bootRun' || true
 
-          # Build the application on the server
-          ./gradlew build
-
           # Start the new application
           nohup ./gradlew bootRun > bootRun.log 2>&1 &
           EOF
