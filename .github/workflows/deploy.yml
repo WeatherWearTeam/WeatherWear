@@ -1,28 +1,40 @@
-name: Deploy to AWS CodeDeploy
+name: Deploy to Ubuntu Server
 
 on:
   push:
     branches:
-      - main  # 배포를 트리거할 브랜치
+      - develop
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up AWS CLI
-        uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          fetch-depth: 2
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11' # Java 버전 설정 (필요에 따라 변경)
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Copy files via SSH
+        run: |
+          rsync -avz --exclude '.git/' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.USER }}@${{ secrets.HOST }}:/home/leesh/Sparta/WeatherWear
 
       - name: Create environment variables file
         run: |
-          echo "DB_URL=${{ secrets.DB_URL }}" >> env-vars.env
+          echo "DB_URL=${{ secrets.DB_URL }}" > env-vars.env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> env-vars.env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> env-vars.env
           echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> env-vars.env
@@ -39,25 +51,28 @@ jobs:
           echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> env-vars.env
           echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> env-vars.env
           echo "AWS_S3_REGION=${{ secrets.AWS_S3_REGION }}" >> env-vars.env
+          echo "LOCAL_DB_USERNAME=${{ secrets.LOCAL_DB_USERNAME }}" >> env-vars.env
+          echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> env-vars.env
 
-      - name: Upload environment variables file to S3
+      - name: Upload environment variables file to server
         run: |
-          aws s3 cp env-vars.env s3://${{ secrets.AWS_S3_BUCKET_NAME }}/env-vars.env
+          scp -o StrictHostKeyChecking=no env-vars.env ${{ secrets.USER }}@${{ secrets.HOST }}:/home/leesh/Sparta/WeatherWear
 
-      - name: Create deployment package
-        run: zip -r deployment-package.zip ./
-
-      - name: Upload application to S3
+      - name: Clean up
         run: |
-          aws s3 cp deployment-package.zip s3://${{ secrets.AWS_S3_BUCKET_NAME }}/WeatherWear-main.zip
+          rm -f env-vars.env
 
-      - name: Verify S3 upload
-        run: aws s3 ls s3://${{ secrets.AWS_S3_BUCKET_NAME }}/WeatherWear-main.zip
-
-      - name: Deploy to CodeDeploy
+      - name: Build and start Spring application on server
         run: |
-          aws deploy create-deployment \
-            --application-name ${{ secrets.CODEDEPLOY_APPLICATION_NAME }} \
-            --deployment-group-name ${{ secrets.CODEDEPLOY_DEPLOYMENT_GROUP_NAME }} \
-            --s3-location bucket=${{ secrets.AWS_S3_BUCKET_NAME }},key=WeatherWear-main.zip,bundleType=zip \
-            --description "WeatherWear Deploying new version"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@${{ secrets.HOST }} << 'EOF'
+          cd /home/leesh/Sparta/WeatherWear
+          
+          # Stop existing application if running
+          pkill -f './gradlew bootRun' || true
+
+          # Build the application on the server
+          ./gradlew build
+
+          # Start the new application
+          nohup ./gradlew bootRun > bootRun.log 2>&1 &
+          EOF
