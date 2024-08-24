@@ -13,7 +13,7 @@ import com.sparta.WeatherWear.clothes.enums.ClothesType;
 import com.sparta.WeatherWear.global.security.UserDetailsImpl;
 import com.sparta.WeatherWear.global.service.ImageTransformService;
 import com.sparta.WeatherWear.global.service.RedisService;
-import com.sparta.WeatherWear.global.service.S3Service;
+import com.sparta.WeatherWear.global.service.ImageService;
 import com.sparta.WeatherWear.user.entity.User;
 import com.sparta.WeatherWear.weather.entity.Weather;
 import com.sparta.WeatherWear.weather.service.WeatherService;
@@ -51,7 +51,7 @@ public class BoardService {
     private BoardLikeRepository boardLikeRepository;
     private BoardRepository boardRepository;
     private ImageTransformService imageTransformService;
-    private S3Service s3Service;
+    private ImageService imageService;
     private RedisService redisService;
 
     /* 게시물 작성 */
@@ -69,7 +69,7 @@ public class BoardService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("이미지를 첨부해주세요"); // null이면 오류
         }
         File webPFile = imageTransformService.convertToWebP(image); // imageWebp로 변환
-        String imageUrl = s3Service.uploadFile(webPFile); // 이미지 저장 후 url 확인
+        String imageUrl = imageService.uploadFile(webPFile); // 이미지 저장 후 url 확인
 
         // request에서 받아온 값을 Board Entity로 만들기
         Board newBoard = new Board(requestDto, user, weather,imageUrl); // Weather 추가하기
@@ -194,11 +194,11 @@ public class BoardService {
         if(image == null || image.isEmpty()) {
             updateBoard = board.update(requestDTO, weather, board.getBoardImage());
         }else{
-            s3Service.deleteFileByUrl(board.getBoardImage()); // 기존 이미지 제거
+            imageService.deleteFileByUrl(board.getBoardImage()); // 기존 이미지 제거
 
             File webPFile = imageTransformService.convertToWebP(image); // imageWebp로 변환
 
-            String imageUrl = s3Service.uploadFile(webPFile); // 이미지 저장 후 url 확인
+            String imageUrl = imageService.uploadFile(webPFile); // 이미지 저장 후 url 확인
             
             // request 로 받아 온 값 넣기
             updateBoard = board.update(requestDTO, weather, imageUrl);

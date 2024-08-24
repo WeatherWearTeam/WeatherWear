@@ -7,7 +7,7 @@ import com.sparta.WeatherWear.clothes.enums.ClothesType;
 import com.sparta.WeatherWear.clothes.repository.ClothesRepository;
 import com.sparta.WeatherWear.global.security.UserDetailsImpl;
 import com.sparta.WeatherWear.global.service.ImageTransformService;
-import com.sparta.WeatherWear.global.service.S3Service;
+import com.sparta.WeatherWear.global.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +24,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class ClothesService {
     private final ClothesRepository clothesRepository;
-    private final S3Service s3Service;
+    private final ImageService imageService;
     private final ImageTransformService imageTransformService;
 
     /* 옷 목록 불러오기 : 페이지네이션과 타입, 색상에 따라 필터링 됩니다. */
@@ -48,7 +48,7 @@ public class ClothesService {
     @Transactional
     public ResponseEntity<String> createClothes(UserDetailsImpl userDetails, ClothesColor color, ClothesType type, MultipartFile file) throws IOException {
         if(file != null) {
-            String imageUrl = s3Service.uploadFile(imageTransformService.convertToWebP(file)); // 이미지를 WEBP로 변환하고 url 업로드
+            String imageUrl = imageService.uploadFile(imageTransformService.convertToWebP(file)); // 이미지를 WEBP로 변환하고 url 업로드
             clothesRepository.save(new Clothes(color, type, userDetails.getUser(), imageUrl));
             return ResponseEntity.ok().body("Clothes created successfully");
         }else{
@@ -68,8 +68,8 @@ public class ClothesService {
         // 파일이 있을 경우 저장하고 옷 정보에 추가합니다.
         String url = clothes.getImage();
         if(file != null && !file.isEmpty()){ // 파일이 있는 경우 : 이미지 수정
-            if(clothes.getImage() != null) s3Service.deleteFileByUrl(clothes.getImage()); // 기존 이미지 제거
-            url = s3Service.uploadFile( imageTransformService.convertToWebP(file)); // 이미지를 WEBP로 변환하고 url 업로드
+            if(clothes.getImage() != null) imageService.deleteFileByUrl(clothes.getImage()); // 기존 이미지 제거
+            url = imageService.uploadFile( imageTransformService.convertToWebP(file)); // 이미지를 WEBP로 변환하고 url 업로드
         }
         clothes.update(color,type,url);
         return ResponseEntity.ok().body("Clothes created successfully");
@@ -81,7 +81,7 @@ public class ClothesService {
         Clothes clothes = clothesRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("No Clothes"));// 옷 객체 검색
         // 사용자와 옷의 등록자가 일치하는지 확인
         if(!clothes.getUser().getId().equals(userDetails.getUser().getId()))  return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("사용자의 옷장 아이템이 아닙니다.");
-        s3Service.deleteFileByUrl(clothes.getImage()); // 옷 이미지 삭제
+        imageService.deleteFileByUrl(clothes.getImage()); // 옷 이미지 삭제
         clothesRepository.delete(clothes);// 삭제
         return ResponseEntity.ok("Clothes delete successfully");
     }

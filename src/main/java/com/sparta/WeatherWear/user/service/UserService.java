@@ -1,12 +1,11 @@
 package com.sparta.WeatherWear.user.service;
 
-import com.sparta.WeatherWear.board.dto.BoardCreateResponseDto;
 import com.sparta.WeatherWear.board.dto.SimpleBoardResponseDTO;
 import com.sparta.WeatherWear.board.entity.Board;
 import com.sparta.WeatherWear.board.repository.BoardRepository;
 import com.sparta.WeatherWear.global.security.JwtUtil;
 import com.sparta.WeatherWear.global.service.ImageTransformService;
-import com.sparta.WeatherWear.global.service.S3Service;
+import com.sparta.WeatherWear.global.service.ImageService;
 import com.sparta.WeatherWear.user.dto.UserPasswordUpdateRequestDTO;
 import com.sparta.WeatherWear.user.dto.UserCreateRequestDTO;
 import com.sparta.WeatherWear.user.entity.User;
@@ -28,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 /*
 작성자 : 이승현
@@ -42,7 +40,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
-    private final S3Service s3Service;
+    private final ImageService imageService;
     private final ImageTransformService imageTransformService;
     private final JwtUtil jwtUtil;
 
@@ -62,7 +60,7 @@ public class UserService {
         User user = userDetails.getUser();
         // 카카오 계정이 아니고, 이미지가 있는 경우에만 이미지 삭제
         if (user.getKakaoId() == null && user.getImage() != null) {
-            s3Service.deleteFileByUrl(user.getImage());
+            imageService.deleteFileByUrl(user.getImage());
         }
         userRepository.delete(user);
         jwtUtil.removeJwtCookie(res);
@@ -82,14 +80,14 @@ public class UserService {
             if(deleteImage) {
                 url = null;
                 log.info("이미지 삭제");
-                s3Service.deleteFileByUrl(user.getImage());
+                imageService.deleteFileByUrl(user.getImage());
             }
         }else{
             log.info("이미지 수정");
-            if(user.getImage() != null) s3Service.deleteFileByUrl(user.getImage());
+            if(user.getImage() != null) imageService.deleteFileByUrl(user.getImage());
             File webPFile = imageTransformService.convertToWebP(file);
             log.info("이미지 업로드");
-            url = s3Service.uploadFile(webPFile);
+            url = imageService.uploadFile(webPFile);
         }
         log.info("이미지 url : " + url);
         user.updateInfo(nickname,url);
