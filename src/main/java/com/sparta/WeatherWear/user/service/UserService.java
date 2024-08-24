@@ -4,6 +4,7 @@ import com.sparta.WeatherWear.board.dto.BoardCreateResponseDto;
 import com.sparta.WeatherWear.board.dto.SimpleBoardResponseDTO;
 import com.sparta.WeatherWear.board.entity.Board;
 import com.sparta.WeatherWear.board.repository.BoardRepository;
+import com.sparta.WeatherWear.global.security.JwtUtil;
 import com.sparta.WeatherWear.global.service.ImageTransformService;
 import com.sparta.WeatherWear.global.service.S3Service;
 import com.sparta.WeatherWear.user.dto.UserPasswordUpdateRequestDTO;
@@ -11,7 +12,10 @@ import com.sparta.WeatherWear.user.dto.UserCreateRequestDTO;
 import com.sparta.WeatherWear.user.entity.User;
 import com.sparta.WeatherWear.user.repository.UserRepository;
 import com.sparta.WeatherWear.global.security.UserDetailsImpl;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,11 +38,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Log log = LogFactory.getLog(UserService.class);
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final PasswordEncoder passwordEncoder;
     private final S3Service s3Service;
     private final ImageTransformService imageTransformService;
+    private final JwtUtil jwtUtil;
 
     /* 회원가입 */
     @Transactional
@@ -52,13 +58,14 @@ public class UserService {
 
     /* 회원 탈퇴*/
     @Transactional
-    public ResponseEntity<String> removeUser(UserDetailsImpl userDetails) throws IOException {
+    public ResponseEntity<String> removeUser(UserDetailsImpl userDetails, HttpServletResponse res) throws IOException {
         User user = userDetails.getUser();
         // 카카오 계정이 아니고, 이미지가 있는 경우에만 이미지 삭제
         if (user.getKakaoId() == null && user.getImage() != null) {
             s3Service.deleteFileByUrl(user.getImage());
         }
         userRepository.delete(user);
+        jwtUtil.removeJwtCookie(res);
         return ResponseEntity.ok().body("User deleted successfully");
     }
 
@@ -70,16 +77,21 @@ public class UserService {
         if(!user.getNickname().equals(nickname) && userRepository.existsByNickname(nickname)) return ResponseEntity.status(HttpStatus.CONFLICT).body("Nickname is already taken.");
 
         String url = user.getImage();
+        log.info("사용자 이미지 확인");
         if(file == null || file.isEmpty()){
             if(deleteImage) {
                 url = null;
+                log.info("이미지 삭제");
                 s3Service.deleteFileByUrl(user.getImage());
             }
         }else{
+            log.info("이미지 수정");
             if(user.getImage() != null) s3Service.deleteFileByUrl(user.getImage());
             File webPFile = imageTransformService.convertToWebP(file);
+            log.info("이미지 업로드");
             url = s3Service.uploadFile(webPFile);
         }
+        log.info("이미지 url : " + url);
         user.updateInfo(nickname,url);
         userRepository.save(user);
         return ResponseEntity.ok().body("User updated successfully");

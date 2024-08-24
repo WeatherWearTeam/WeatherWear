@@ -1,6 +1,5 @@
 package com.sparta.WeatherWear.user.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sparta.WeatherWear.board.dto.BoardCreateResponseDto;
 import com.sparta.WeatherWear.board.dto.SimpleBoardResponseDTO;
 import com.sparta.WeatherWear.global.dto.ResponseDTO;
 import com.sparta.WeatherWear.user.dto.UserCreateRequestDTO;
@@ -9,7 +8,6 @@ import com.sparta.WeatherWear.user.dto.UserResponseDTO;
 import com.sparta.WeatherWear.user.service.RecommendService;
 import com.sparta.WeatherWear.user.service.UserService;
 import com.sparta.WeatherWear.global.security.UserDetailsImpl;
-import com.sparta.WeatherWear.user.service.KakaoLoginService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -23,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /*
 작성자 : 이승현
@@ -77,8 +74,8 @@ public class UserController {
     }
     /* 사용자 정보 삭제 */
     @DeleteMapping("/users")
-    public ResponseEntity<String>  removeUser(@AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
-        return userService.removeUser(userDetails);
+    public ResponseEntity<String>  removeUser(@AuthenticationPrincipal UserDetailsImpl userDetails, HttpServletResponse res) throws IOException {
+        return userService.removeUser(userDetails,res);
     }
 
     /* 추천 아이템들 불러오기 */

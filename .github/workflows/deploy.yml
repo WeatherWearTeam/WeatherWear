@@ -18,22 +18,46 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2  # AWS 리전 설정
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create environment variables file
+        run: |
+          echo "DB_URL=${{ secrets.DB_URL }}" >> env-vars.env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> env-vars.env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> env-vars.env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> env-vars.env
+          echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> env-vars.env
+          echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> env-vars.env
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> env-vars.env
+          echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> env-vars.env
+          echo "WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}" >> env-vars.env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> env-vars.env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> env-vars.env
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> env-vars.env
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> env-vars.env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> env-vars.env
+          echo "AWS_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> env-vars.env
+          echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> env-vars.env
+          echo "AWS_S3_REGION=${{ secrets.AWS_S3_REGION }}" >> env-vars.env
+
+      - name: Upload environment variables file to S3
+        run: |
+          aws s3 cp env-vars.env s3://${{ secrets.AWS_S3_BUCKET_NAME }}/env-vars.env
 
       - name: Create deployment package
         run: zip -r deployment-package.zip ./
 
       - name: Upload application to S3
         run: |
-          aws s3 cp deployment-package.zip s3://weatherwearbucket/WeatherWear-main.zip
+          aws s3 cp deployment-package.zip s3://${{ secrets.AWS_S3_BUCKET_NAME }}/WeatherWear-main.zip
 
       - name: Verify S3 upload
-        run: aws s3 ls s3://weatherwearbucket/WeatherWear-main.zip
+        run: aws s3 ls s3://${{ secrets.AWS_S3_BUCKET_NAME }}/WeatherWear-main.zip
 
       - name: Deploy to CodeDeploy
         run: |
           aws deploy create-deployment \
-            --application-name deploy-app \
-            --deployment-group-name deploy-group \
-            --s3-location bucket=weatherwearbucket,key=WeatherWear-main.zip,bundleType=zip\
+            --application-name ${{ secrets.CODEDEPLOY_APPLICATION_NAME }} \
+            --deployment-group-name ${{ secrets.CODEDEPLOY_DEPLOYMENT_GROUP_NAME }} \
+            --s3-location bucket=${{ secrets.AWS_S3_BUCKET_NAME }},key=WeatherWear-main.zip,bundleType=zip \
             --description "WeatherWear Deploying new version"
