@@ -54,6 +54,12 @@ jobs:
         run: |
           rm -f env-vars.env
 
+      - name: Fix permissions on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@${{ secrets.HOST }} << 'EOF'
+          chmod -R u+rwX /home/leesh/Sparta/WeatherWear
+          EOF
+
       - name: Build and start Spring application on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@${{ secrets.HOST }} << 'EOF'
