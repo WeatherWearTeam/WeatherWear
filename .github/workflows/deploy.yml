@@ -61,5 +61,6 @@ jobs:
           pkill -f './gradlew bootRun' || true
 
           # Start the new application
+          source .env
           nohup ./gradlew bootRun > bootRun.log 2>&1 &
           EOF
