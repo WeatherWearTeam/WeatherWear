@@ -26,21 +26,21 @@ jobs:
 
       - name: Create environment variables file
         run: |
-          echo "DB_URL=${{ secrets.DB_URL }}" > env-vars.env
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> env-vars.env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> env-vars.env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> env-vars.env
-          echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> env-vars.env
-          echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> env-vars.env
-          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> env-vars.env
-          echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> env-vars.env
-          echo "WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}" >> env-vars.env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> env-vars.env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> env-vars.env
-          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> env-vars.env
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> env-vars.env
-          echo "LOCAL_DB_USERNAME=${{ secrets.LOCAL_DB_USERNAME }}" >> env-vars.env
-          echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> env-vars.env
+          echo "DB_URL=${{ secrets.DB_URL }}" > .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+          echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
+          echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
+          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> .env
+          echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> .env
+          echo "WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}" >> .env
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+          echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+          echo "LOCAL_DB_USERNAME=${{ secrets.LOCAL_DB_USERNAME }}" >> .env
+          echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> .env
 
       - name: Upload environment variables file to server
         run: |
