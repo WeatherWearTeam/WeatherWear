@@ -48,8 +48,6 @@ public class JwtUtil {
     private RedisService redisService; // RedisService 주입
 
     private final UserRepository userRepository;
-
-    @Autowired
     public JwtUtil(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
