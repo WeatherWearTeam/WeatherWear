@@ -60,7 +60,9 @@ jobs:
           # Stop existing application if running
           pkill -f './gradlew bootRun' || true
 
+          # Read .env file and export variables
+          export $(grep -v '^#' .env | xargs)
+          
           # Start the new application
-          source .env
           nohup ./gradlew bootRun > bootRun.log 2>&1 &
           EOF
