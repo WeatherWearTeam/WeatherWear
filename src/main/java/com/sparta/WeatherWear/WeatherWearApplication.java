@@ -17,7 +17,7 @@ public class WeatherWearApplication {
 	}
 
 	public static void main(String[] args) {
-		Dotenv dotenv = Dotenv.load(); // .env 파일 로드
+		Dotenv dotenv =Dotenv.configure().directory("/home/leesh/Sparta/WeatherWear").load();
 		SpringApplication.run(WeatherWearApplication.class, args);
 	}
 }

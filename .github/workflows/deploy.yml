@@ -44,11 +44,7 @@ jobs:
 
       - name: Upload environment variables file to server
         run: |
-          scp -o StrictHostKeyChecking=no env-vars.env ${{ secrets.USER }}@${{ secrets.HOST }}:/home/leesh/Sparta/WeatherWear
-
-      - name: Clean up
-        run: |
-          rm -f env-vars.env
+          scp -o StrictHostKeyChecking=no .env ${{ secrets.USER }}@${{ secrets.HOST }}:/home/leesh/Sparta/WeatherWear
 
       - name: Fix permissions on server
         run: |
