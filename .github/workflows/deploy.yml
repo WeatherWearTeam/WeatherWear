@@ -22,7 +22,7 @@ jobs:
 
       - name: Copy files via SSH
         run: |
-          rsync -avz --exclude '.git/' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.USER }}@${{ secrets.HOST }}:/home/leesh/Sparta/WeatherWear
+          rsync -avz --exclude '.git/' --chown=leesh:leesh -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.USER }}@${{ secrets.HOST }}:/home/leesh/Sparta/WeatherWear
 
       - name: Create environment variables file
         run: |
@@ -49,7 +49,7 @@ jobs:
       - name: Fix permissions on server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.USER }}@${{ secrets.HOST }} << 'EOF'
-          chmod -R u+rwX /home/leesh/Sparta/WeatherWear
+          chown -R leesh:leesh /home/leesh/Sparta/WeatherWear
           EOF
 
       - name: Build and start Spring application on server
