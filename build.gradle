@@ -64,18 +64,3 @@ dependencies {
 tasks.named('test') {LOCAL_DB_PASSWORD
 	useJUnitPlatform()
 }
-
-bootRun {
-	environment "LOCAL_DB_USERNAME", System.getenv("LOCAL_DB_USERNAME")
-	environment "LOCAL_DB_PASSWORD", System.getenv("LOCAL_DB_PASSWORD")
-	environment "JWT_SECRET_KEY", System.getenv("JWT_SECRET_KEY")
-	environment "NAVER_CLIENT_ID", System.getenv("NAVER_CLIENT_ID")
-	environment "NAVER_CLIENT_SECRET", System.getenv("NAVER_CLIENT_SECRET")
-	environment "KAKAO_CLIENT_ID", System.getenv("KAKAO_CLIENT_ID")
-	environment "KAKAO_REDIRECT_URI", System.getenv("KAKAO_REDIRECT_URI")
-	environment "WEATHER_API_KEY", System.getenv("WEATHER_API_KEY")
-	environment "REDIS_HOST", System.getenv("REDIS_HOST")
-	environment "REDIS_PORT", System.getenv("REDIS_PORT")
-	environment "MAIL_USERNAME", System.getenv("MAIL_USERNAME")
-	environment "MAIL_PASSWORD", System.getenv("MAIL_PASSWORD")
-}
