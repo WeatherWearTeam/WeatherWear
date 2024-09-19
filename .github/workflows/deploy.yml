@@ -37,6 +37,7 @@ jobs:
           echo "WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}" >> .env
           echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
           echo "LOCAL_DB_USERNAME=${{ secrets.LOCAL_DB_USERNAME }}" >> .env
