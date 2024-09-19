@@ -90,9 +90,8 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll() // 게시물 정보 접근
                                 .requestMatchers(HttpMethod.GET, "/api/recommends/**").permitAll() // 추천 아이템 접근
                                 .requestMatchers(HttpMethod.GET, "/health").permitAll() // 로드밸런서 상태 확인 요청
-                                .requestMatchers(HttpMethod.GET, "/swagger-ui.html").permitAll() // Swagger
-                                .requestMatchers(HttpMethod.GET, "/swagger-ui/index.html").permitAll() // Swagger
-                                .requestMatchers(HttpMethod.GET, "/v3/api-docs/**").permitAll() // Swagger 명세 경로 허용
+                                .requestMatchers("/swagger-ui/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 // 에러 핸들러 설정
