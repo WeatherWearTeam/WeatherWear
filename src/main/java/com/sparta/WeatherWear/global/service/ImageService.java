@@ -29,7 +29,7 @@ public class ImageService {
         Files.copy(file.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         // 반환 URL (Nginx의 서버 도메인과 경로를 맞춰야 함)
-        return String.format("http://dltmdgus9661.iptime.org/uploads/%s", key);
+        return String.format("https://dltmdgus9661.iptime.org/uploads/%s", key);
     }
 
     /* 서버에 없는 유니크 이름을 생성하는 기능 */
@@ -56,7 +56,7 @@ public class ImageService {
 
     /* URL로부터 파일 이름을 추출하는 기능 */
     private String extractKeyFromUrl(String fileUrl) {
-        String pattern = "http://dltmdgus9661.iptime.org/uploads/(.*)";
+        String pattern = "https://dltmdgus9661.iptime.org/uploads/(.*)";
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(fileUrl);
         if (m.find()) {
