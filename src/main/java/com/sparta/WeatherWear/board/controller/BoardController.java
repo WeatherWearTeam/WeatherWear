@@ -32,23 +32,11 @@ public class BoardController {
     @Autowired
     private final BoardService boardService;
 
-    // 클래스 내에 로거 추가
-    private static final Logger logger = LoggerFactory.getLogger(BoardController.class); // YourControllerClassName을 실제 클래스명으로 변경
-
     /* 게시물 작성 */
     @PostMapping("")
     public ResponseEntity<?> createBoard(@RequestPart("data") String data, @RequestPart(value = "file") MultipartFile image, @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
-        // 데이터 로그 찍기
-        logger.info("Received data: {}", data);
-        // DTO로 파싱
-        BoardCreateRequestDto boardCreateRequestDto = new ObjectMapper().readValue(data, BoardCreateRequestDto.class);
-        // color 값 로그 찍기
-        if (boardCreateRequestDto.getTags() != null) {
-            logger.info("Parsed Tags: {}", boardCreateRequestDto.getTags());
-        } else {
-            logger.warn("Tags value is null.");
-        }
-        return boardService.createBoard(boardCreateRequestDto, userDetails, image);
+        BoardCreateRequestDto boardCreateRequestDto = new ObjectMapper().readValue(data, BoardCreateRequestDto.class); // json 형식을 DTO로 파싱합니다.
+        return boardService.createBoard(boardCreateRequestDto,userDetails, image);
     }
 
     /* 상세 조회 : 게시물 id로 조회 */
