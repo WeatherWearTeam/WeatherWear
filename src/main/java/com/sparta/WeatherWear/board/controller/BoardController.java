@@ -40,10 +40,8 @@ public class BoardController {
     public ResponseEntity<?> createBoard(@RequestPart("data") String data, @RequestPart(value = "file") MultipartFile image, @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
         // 데이터 로그 찍기
         logger.info("Received data: {}", data);
-
         // DTO로 파싱
         BoardCreateRequestDto boardCreateRequestDto = new ObjectMapper().readValue(data, BoardCreateRequestDto.class);
-
         // color 값 로그 찍기
         if (boardCreateRequestDto.getTags() != null) {
             logger.info("Parsed Tags: {}", boardCreateRequestDto.getTags());
